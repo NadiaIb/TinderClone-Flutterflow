@@ -106,49 +106,47 @@ exports.post = functions.https.onRequest(async (req, res) => {
 
     res.send("We like each other done");
   }
+
+  if (type === "breakMatch") {
+    console.log("break match");
+    // Get the data passed through the API CALL
+
+    const myId = body.myId;
+    const idOfPersonThatIDontLike = body.idOfPersonThatIDontLike;
+    console.log("my id", myId);
+    console.log("personIdonTLike", idOfPersonThatIDontLike);
+    // Delete all the Chat
+    const id = generateChatId(myId, idOfPersonThatIDontLike);
+    console.log("id", id);
+    const listMessageDocuments = await firestore
+      .collection("chats")
+      .doc(id)
+      .collection("messages")
+      .listDocuments();
+    console.log("list of message doc", listMessageDocuments);
+    listMessageDocuments.forEach((eadhDoc) => {
+      eadhDoc.delete();
+    });
+
+    await firestore.collection("chats").doc(id).delete();
+
+    // Delete the user from the "weLikeEachOther" subcollections in both places, in mine, and in the other person's subcollection
+
+    const path1 = `users/${myId}/weLikeEachOther/${idOfPersonThatIDontLike}`;
+    const path2 = `users/${idOfPersonThatIDontLike}/weLikeEachOther/${myId}`;
+
+    // Perform the delete operations
+    await firestore.doc(path1).delete();
+    await firestore.doc(path2).delete();
+
+    response.send("Deletion successfull");
+  }
+
+  response.send("Hello i am a POST");
 });
 
-
-//   if (type === "breakMatch") {
-//     console.log("break match");
-//     // Get the data passed through the API CALL
-
-//     const myId = body.myId;
-//     const idOfPersonThatIDontLike = body.idOfPersonThatIDontLike;
-//     console.log("my id", myId);
-//     console.log("personIdonTLike", idOfPersonThatIDontLike);
-//     // Delete all the Chat
-//     const id = generateChatId(myId, idOfPersonThatIDontLike);
-//     console.log("id", id);
-//     const listMessageDocuments = await firestore
-//         .collection("chats")
-//         .doc(id)
-//         .collection("messages")
-//         .listDocuments();
-//     console.log("list of message doc", listMessageDocuments);
-//     listMessageDocuments.forEach((eadhDoc) => {
-//       eadhDoc.delete();
-//     });
-
-//     await firestore.collection("chats").doc(id).delete();
-//     // Delete the user from the "weLikeEachOther" subcollections
-//     // in both places, in mine, and in the other person's subcollection
-
-//     const path1 = `users/${myId}/weLikeEachOther/${idOfPersonThatIDontLike}`;
-//     const path2 = `users/${idOfPersonThatIDontLike}/weLikeEachOther/${myId}`;
-
-//     // Perform the delete operations
-//     await firestore.doc(path1).delete();
-//     await firestore.doc(path2).delete();
-
-//     response.send("Deletion successfull");
-//   }
-
-//   response.send("Hello i am a POST");
-// });
-
-// const generateChatId = (id1, id2) => {
-//   const array = [id1, id2];
-//   array.sort();
-//   return `${array[0]}-${array[1]}`;
-// };
+const generateChatId = (id1, id2) => {
+  const array = [id1, id2];
+  array.sort();
+  return `${array[0]}-${array[1]}`;
+};
