@@ -89,26 +89,25 @@ exports.post = functions.https.onRequest(async (req, res) => {
       .collection("theyLikeMe")
       .doc(idOfPersonThatILike)
       .delete();
+
+    //Create the chat Document in the chat collection
+    const idOfDocument = generateChatId(myId, idOfPersonThatILike);
+
+    await firestore
+      .collection("chats")
+      .doc(idOfDocument)
+      .set(
+        {
+          idsConcatenated: idOfDocument,
+          arrayOfPeopleInConversation: [myId, idOfPersonThatILike],
+        },
+        { merge: true }
+      );
+
     res.send("We like each other done");
   }
 });
 
-// // Create the chat Document in the chat collection
-// const idOfDocument = generateChatId(myId, idOfPersonThatILike);
-
-//     await firestore
-//         .collection("chats")
-//         .doc(idOfDocument)
-//         .set(
-//             {
-//               idsConcatenated: idOfDocument,
-//               arrayOfPeopleInConversation: [myId, idOfPersonThatILike],
-//             },
-//             {merge: true},
-//         );
-
-//     response.send("We like Each other successfully done");
-//   }
 
 //   if (type === "breakMatch") {
 //     console.log("break match");
