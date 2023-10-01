@@ -20,7 +20,7 @@ exports.post = functions.https.onRequest(async (req, res) => {
   const type = body.type; //type of post
 
   if (type === "personLikesMe") {
-    const myId = body.idOfPersonThatILike;
+    const myId = body.myId;
     const idOfPersonThatILike = body.idOfPersonThatILike;
     await firestore
       .collection("users")
@@ -36,104 +36,65 @@ exports.post = functions.https.onRequest(async (req, res) => {
       );
     res.send("Successful");
   }
+  if (type === "IDontLikeYou") {
+    const myId = body.myId;
 
-  res.send("Hello I am a POST");
+    // idOfPersonThatIDontLike
+    const idOfPersonThatIDontLike = body.idOfPersonThatIDontLike;
+    // console.log("data", myId, idOfPersonThatIDontLike);
+    await firestore
+      .collection("users")
+      .doc(myId)
+      .collection("theyLikeMe")
+      .doc(idOfPersonThatIDontLike)
+      .delete();
+    response.send("Successfully Deleted");
+  }
+
+  if (type === "weLikeEachOther") {
+    const myId = body.myId;
+    const idOfPersonThatILike = body.idOfPersonThatILike;
+
+    // I prepare the 2 objects
+    //  otherPersonObject
+    const otherPersonObject = {
+      uid: idOfPersonThatILike,
+      documentReference: firestore.collection("users").doc(idOfPersonThatILike),
+    };
+
+    // My object
+    const myObject = {
+      uid: myId,
+      document: firestore.collection("users").doc(myId),
+    };
+
+    // 2Inserts in weLikeEach other subcollection
+    await firestore
+      .collection("users")
+      .doc(idOfPersonThatILike)
+      .collection("weLikeEachOther")
+      .doc(myId)
+      .set(myObject, { merge: true });
+    await firestore
+      .collection("users")
+      .doc(myId)
+      .collection("weLikeEachOther")
+      .doc(idOfPersonThatILike)
+      .set(otherPersonObject, { merge: true });
+
+    // Delete the document from my subcollection of "theyLikeMe"
+    await firestore
+      .collection("users")
+      .doc(myId)
+      .collection("theyLikeMe")
+      .doc(idOfPersonThatILike)
+      .delete();
+    res.send("We like each other done");
+  }
 });
 
-// exports.get = functions.https.onRequest(async (request, response) => {
-//   // functions.logger.info("Hello logs!", {structuredData: true});
-
-//   // We execute an insertion inside the users
-//   // collection of the object {name:'jesse'}
-//   const result = await firestore.collection("users").add({name: "Jesse"});
-
-//   // I return the result to the navigator
-//   response.send(result);
-// });
-
-// exports.post = functions.https.onRequest(async (request, response) => {
-//   // functions.logger.info("Hello logs!", {structuredData: true});
-
-//   const body = request.body;
-
-//   const type = body.type;
-//   console.log("body", body);
-
-//   if (type === "personLikesMe") {
-//     const myId = body.myId;
-//     const idOfPersonThatILike = body.idOfPersonThatILike;
-//     await firestore
-//         .collection("users")
-//         .doc(idOfPersonThatILike)
-//         .collection("theyLikeMe")
-//         .doc(myId)
-//         .set(
-//             {
-//               uid: myId,
-//               documentReference: firestore.collection("users").doc(myId),
-//             },
-//             {merge: true},
-//         );
-//     response.send("Successfull");
-//   }
-
-//   if (type === "IDontLikeYou") {
-//     const myId = body.myId;
-
-//     // idOfPersonThatIDontLike
-//     const idOfPersonThatIDontLike = body.idOfPersonThatIDontLike;
-//     console.log("data", myId, idOfPersonThatIDontLike);
-//     await firestore
-//         .collection("users")
-//         .doc(myId)
-//         .collection("theyLikeMe")
-//         .doc(idOfPersonThatIDontLike)
-//         .delete();
-//     response.send("Successfully Deleted");
-//   }
-
-//   if (type === "weLikeEachOther") {
-//     const myId = body.myId;
-//     const idOfPersonThatILike = body.idOfPersonThatILike;
-
-//     // I prepare the 2 objects
-//     //  otherPersonObject
-//     const otherPersonObject = {
-//       uid: idOfPersonThatILike,
-//       documentReference: firestore.collection("users")
-// .doc(idOfPersonThatILike),
-//     };
-//     // My object
-
-//     const myObject = {
-//       uid: myId,
-//       documentReference: firestore.collection("users").doc(myId),
-//     };
-
-//     // 2Inserts in weLikeEach other subcollection
-//     await firestore
-//         .collection("users")
-//         .doc(idOfPersonThatILike)
-//         .collection("weLikeEachOther")
-//         .doc(myId)
-//         .set(myObject, {merge: true});
-//     await firestore
-//         .collection("users")
-//         .doc(myId)
-//         .collection("weLikeEachOther")
-//         .doc(idOfPersonThatILike)
-//         .set(otherPersonObject, {merge: true});
-
-//     // Delete the document from my subcollection of "theyLikeMe"
-//     await firestore
-//         .collection("users")
-//         .doc(myId)
-//         .collection("theyLikeMe")
-//         .doc(idOfPersonThatILike)
-//         .delete();
-
-//     // Create the chat Document in the chat collection
-//     const idOfDocument = generateChatId(myId, idOfPersonThatILike);
+// // Create the chat Document in the chat collection
+// const idOfDocument = generateChatId(myId, idOfPersonThatILike);
 
 //     await firestore
 //         .collection("chats")
