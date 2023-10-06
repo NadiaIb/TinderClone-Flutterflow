@@ -1,4 +1,6 @@
 const functions = require("firebase-functions");
+
+const cors = require('cors')({ origin: 'https://tindercloneudemy.flutterflow.app' });
 // Import the Admin Library
 const admin = require("firebase-admin");
 
@@ -16,7 +18,9 @@ exports.get = functions.https.onRequest(async (req, res) => {
 });
 
 exports.post = functions.https.onRequest(async (req, res) => {
-  const body = req.body; //everything from api call from flutterflow
+
+    cors(req, res, async() => {
+     const body = req.body; //everything from api call from flutterflow
   const type = body.type; //type of post
 
   if (type === "personLikesMe") {
@@ -48,7 +52,7 @@ exports.post = functions.https.onRequest(async (req, res) => {
       .collection("theyLikeMe")
       .doc(idOfPersonThatIDontLike)
       .delete();
-    response.send("Successfully Deleted");
+    res.send("Successfully Deleted");
   }
 
   if (type === "weLikeEachOther") {
@@ -139,10 +143,11 @@ exports.post = functions.https.onRequest(async (req, res) => {
     await firestore.doc(path1).delete();
     await firestore.doc(path2).delete();
 
-    response.send("Deletion successfull");
+    res.send("Deletion successfull");
   }
 
-  response.send("Hello i am a POST");
+  res.send("Hello i am a POST");
+});
 });
 
 const generateChatId = (id1, id2) => {
